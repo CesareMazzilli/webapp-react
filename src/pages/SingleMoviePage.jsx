@@ -1,18 +1,45 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ReviewCard from "../components/ReviewCard";
+import ReviewForm from "../components/ReviewForm";
 import axios from "axios";
+
+const initialValues = {
+    name: "",
+    text: "",
+    vote: 0,
+};
 
 function SingleMoviePage() {
     const { slug } = useParams();
     const [movie, setMovie] = useState(null);
     const apiUrl = import.meta.env.VITE_API_URL;
     const navigate = useNavigate();
-    useEffect(() => {
+    const [formData, setFormData] = useState(initialValues);
+
+    const getMovie = () => {
         axios.get(`${apiUrl}/movies/${slug}`).then((resp) => {
             setMovie(resp.data.data);
         })
+    };
+
+    useEffect(() => {
+        getMovie()
+
     }, []);
+
+
+    const storeReview = (formData) => {
+
+        axios
+            .post(`${apiUrl}/movies/${movie.id}/reviews`, formData)
+            .then((resp) => {
+                setFormData(initialValues);
+                getMovie();
+            });
+    };
+
+
 
     return (
         <>
@@ -31,9 +58,22 @@ function SingleMoviePage() {
                         </div>
                     </section>
                     <section>
-                        <div className="row row-cols1 g-3 mt-5">
+                        <h3 className="mt-3">Recensioni: </h3>
+                        <div className="row row-cols1 g-3 mt-3">
                             {movie.reviews.map(review => <ReviewCard key={review.id} review={review} />)}
 
+                        </div>
+                    </section>
+                    <section className="mt-5">
+                        <div className="row justify-content-center">
+                            <div className="col-8">
+                                <h2 className="text-center">Invia una nuova recensione</h2>
+                                <ReviewForm
+                                    formData={formData}
+                                    setFormData={setFormData}
+                                    onSubmitFunction={storeReview}
+                                />
+                            </div>
                         </div>
                     </section>
                 </>
